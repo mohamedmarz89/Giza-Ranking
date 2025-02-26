@@ -86,59 +86,63 @@
                 retrieve: true,
                 paging: false
             });
-            
+
             var sheetID = '1DNeuIMq7WrUEu98xt8CV5K2UyW7kNqij9tcmtMEwEL0';
             var sheetURL = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
-            
+
             function fetchData() {
                 $.ajax({
                     url: sheetURL,
                     dataType: 'text',
                     success: function(response) {
-                        let jsonData = JSON.parse(response.substr(47).slice(0, -2));
-                        let rows = jsonData.table.rows;
-                        let data = [];
-                        let teams = new Set();
-                        let ageGroups = new Set();
-                        
-                        rows.forEach(row => {
-                            let rowData = row.c.map(cell => cell && cell.v ? cell.v.toString().trim() : '');
-                            if (rowData.length >= 16) {
-                                data.push(rowData);
-                                if (rowData[3]) teams.add(rowData[3]);
-                                if (rowData[0]) ageGroups.add(rowData[0]);
-                            }
-                        });
-                        
-                        table.clear().rows.add(data).draw();
-                        
-                        $('#teamFilter').html('<option value="">All</option>' + Array.from(teams).map(team => `<option value="${team}">${team}</option>`).join(''));
-                        $('#ageGroupFilter').html('<option value="">All</option>' + Array.from(ageGroups).map(ageGroup => `<option value="${ageGroup}">${ageGroup}</option>`).join(''));
+                        try {
+                            let jsonData = JSON.parse(response.substr(47).slice(0, -2));
+                            let rows = jsonData.table.rows;
+                            let data = [];
+                            let teams = new Set();
+                            let ageGroups = new Set();
+
+                            rows.forEach(row => {
+                                let rowData = row.c.map(cell => (cell && cell.v) ? cell.v.toString().trim() : '');
+                                if (rowData.length >= 16) {
+                                    data.push(rowData);
+                                    if (rowData[3]) teams.add(rowData[3]);
+                                    if (rowData[0]) ageGroups.add(rowData[0]);
+                                }
+                            });
+
+                            table.clear().rows.add(data).draw();
+
+                            $('#teamFilter').html('<option value="">All</option>' + Array.from(teams).map(team => `<option value="${team}">${team}</option>`).join(''));
+                            $('#ageGroupFilter').html('<option value="">All</option>' + Array.from(ageGroups).map(ageGroup => `<option value="${ageGroup}">${ageGroup}</option>`).join(''));
+                        } catch (error) {
+                            console.error("Error parsing data:", error);
+                        }
                     },
-                    error: function() {
-                        console.error("Failed to fetch data.");
+                    error: function(xhr, status, error) {
+                        console.error("Error fetching data:", error);
                     }
                 });
             }
-            
+
             function filterTable() {
                 var team = $('#teamFilter').val().toLowerCase();
                 var ageGroup = $('#ageGroupFilter').val().toLowerCase();
                 var type = $('#typeFilter').val().toLowerCase();
-                
+
                 table.rows().every(function() {
                     var row = this.data();
                     var rowAgeGroup = row[0] ? row[0].toLowerCase() : '';
                     var rowType = row[1] ? row[1].toLowerCase() : '';
                     var rowTeam = row[3] ? row[3].toLowerCase() : '';
-                    
-                    var show = (!team || rowTeam.includes(team)) && (!ageGroup || rowAgeGroup.includes(ageGroup)) && (!type || rowType.includes(type));
-                    $(this.node()).toggle(show);
+
+                    var show = (!team || rowTeam === team) && (!ageGroup || rowAgeGroup === ageGroup) && (!type || rowType === type);
+                    this.nodes().to$().toggle(show);
                 });
             }
-            
+
             $('#teamFilter, #ageGroupFilter, #typeFilter').on('change', filterTable);
-            
+
             fetchData();
         });
     </script>
