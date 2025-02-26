@@ -110,12 +110,13 @@
                             }
                         });
                         
-                        table.clear();
-                        data.forEach(row => table.row.add(row));
-                        table.draw();
+                        table.clear().rows.add(data).draw();
                         
                         $('#teamFilter').html('<option value="">All</option>' + Array.from(teams).map(team => `<option value="${team}">${team}</option>`).join(''));
                         $('#ageGroupFilter').html('<option value="">All</option>' + Array.from(ageGroups).map(ageGroup => `<option value="${ageGroup}">${ageGroup}</option>`).join(''));
+                    },
+                    error: function() {
+                        console.error("Failed to fetch data.");
                     }
                 });
             }
@@ -131,8 +132,8 @@
                     var rowType = row[1] ? row[1].toLowerCase() : '';
                     var rowTeam = row[3] ? row[3].toLowerCase() : '';
                     
-                    var show = (!team || rowTeam === team) && (!ageGroup || rowAgeGroup === ageGroup) && (!type || rowType === type);
-                    this.nodes().to$().toggle(show);
+                    var show = (!team || rowTeam.includes(team)) && (!ageGroup || rowAgeGroup.includes(ageGroup)) && (!type || rowType.includes(type));
+                    $(this.node()).toggle(show);
                 });
             }
             
