@@ -1,31 +1,27 @@
 name: Deploy to GitHub Pages
-
 on:
   push:
     branches:
-      - main  # Change this if your default branch is different
+      - main
+  workflow_dispatch:
+  
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
+      - name: Setup Pages
+        uses: actions/configure-pages@v2
 
-      - name: Install Dependencies
-        run: npm install || true  # Ignores errors if package.json is missing
-
-      - name: Build Project (if needed)
-        run: echo "No build step needed"  # Modify this if you need a build process
+      - name: Upload artifacts
+        uses: actions/upload-pages-artifact@v1
 
       - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          branch: gh-pages
-          folder: .  # Change if your files are inside a subfolder
+        uses: actions/deploy-pages@v2
