@@ -1,55 +1,145 @@
-<script>
-    $(document).ready(function() {
-        var table = $('#swimmingTable').DataTable({
-            retrieve: true,
-            paging: false
-        });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swimming Championship Rankings</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        .filters {
+            margin-bottom: 10px;
+        }
+        .filters select {
+            padding: 5px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Swimming Championship Rankings</h2>
+    <div class="filters">
+        <label for="teamFilter">Filter by Team:</label>
+        <select id="teamFilter"><option value="">All</option></select>
+        
+        <label for="ageGroupFilter">Filter by Age Group:</label>
+        <select id="ageGroupFilter"><option value="">All</option></select>
+        
+        <label for="typeFilter">Filter by Type:</label>
+        <select id="typeFilter">
+            <option value="">All</option>
+            <option value="Boys">Boys</option>
+            <option value="Girls">Girls</option>
+        </select>
+    </div>
+    
+    <table id="swimmingTable" class="display">
+        <thead>
+            <tr>
+                <th>Age Group</th>
+                <th>Type</th>
+                <th>Rank</th>
+                <th>Team</th>
+                <th>Points</th>
+                <th>RCD</th>
+                <th>R. Medal</th>
+                <th>Medal</th>
+                <th>S. Medals</th>
+                <th>C. Finals</th>
+                <th>S. Finals</th>
+                <th>% S. Finals</th>
+                <th>C. Swimmer</th>
+                <th>C. Events</th>
+                <th>C. E</th>
+                <th>C. E. P</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
 
-        var sheetID = '1DNeuIMq7WrUEu98xt8CV5K2UyW7kNqij9tcmtMEwEL0';
-        var sheetURL = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
-
-        function fetchData() {
-            $.ajax({
-                url: sheetURL,
-                dataType: 'text',
-                success: function(response) {
-                    let jsonData = JSON.parse(response.substr(47).slice(0, -2));
-                    let rows = jsonData.table.rows;
-                    let data = [];
-                    let teams = new Set();
-                    let ageGroups = new Set();
-
-                    rows.forEach(row => {
-                        let rowData = row.c.map(cell => cell && cell.v ? cell.v.toString().trim() : '');
-                        if (rowData.length >= 16) {
-                            data.push(rowData);
-                            if (rowData[3]) teams.add(rowData[3]);
-                            if (rowData[0]) ageGroups.add(rowData[0]);
-                        }
-                    });
-
-                    table.clear();
-                    table.rows.add(data).draw();
-
-                    $('#teamFilter').html('<option value="">All</option>' + Array.from(teams).map(team => `<option value="${team}">${team}</option>`).join(''));
-                    $('#ageGroupFilter').html('<option value="">All</option>' + Array.from(ageGroups).map(ageGroup => `<option value="${ageGroup}">${ageGroup}</option>`).join(''));
-                }
+    <script>
+        $(document).ready(function() {
+            var table = $('#swimmingTable').DataTable({
+                retrieve: true,
+                paging: false
             });
-        }
-
-        function filterTable() {
-            var team = $('#teamFilter').val().toLowerCase();
-            var ageGroup = $('#ageGroupFilter').val().toLowerCase();
-            var type = $('#typeFilter').val().toLowerCase();
-
-            table.column(0).search(ageGroup, true, false);
-            table.column(1).search(type, true, false);
-            table.column(3).search(team, true, false);
-            table.draw();
-        }
-
-        $('#teamFilter, #ageGroupFilter, #typeFilter').on('change', filterTable);
-
-        fetchData();
-    });
-</script>
+            
+            var sheetID = '1DNeuIMq7WrUEu98xt8CV5K2UyW7kNqij9tcmtMEwEL0';
+            var sheetURL = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json`;
+            
+            function fetchData() {
+                $.ajax({
+                    url: sheetURL,
+                    dataType: 'text',
+                    success: function(response) {
+                        let jsonData = JSON.parse(response.substr(47).slice(0, -2));
+                        let rows = jsonData.table.rows;
+                        let data = [];
+                        let teams = new Set();
+                        let ageGroups = new Set();
+                        
+                        rows.forEach(row => {
+                            let rowData = row.c.map(cell => cell && cell.v ? cell.v.toString().trim() : '');
+                            if (rowData.length >= 16) {
+                                data.push(rowData);
+                                if (rowData[3]) teams.add(rowData[3]);
+                                if (rowData[0]) ageGroups.add(rowData[0]);
+                            }
+                        });
+                        
+                        table.clear();
+                        data.forEach(row => table.row.add(row));
+                        table.draw();
+                        
+                        $('#teamFilter').html('<option value="">All</option>' + Array.from(teams).map(team => `<option value="${team}">${team}</option>`).join(''));
+                        $('#ageGroupFilter').html('<option value="">All</option>' + Array.from(ageGroups).map(ageGroup => `<option value="${ageGroup}">${ageGroup}</option>`).join(''));
+                    }
+                });
+            }
+            
+            function filterTable() {
+                var team = $('#teamFilter').val().toLowerCase();
+                var ageGroup = $('#ageGroupFilter').val().toLowerCase();
+                var type = $('#typeFilter').val().toLowerCase();
+                
+                table.rows().every(function() {
+                    var row = this.data();
+                    var rowAgeGroup = row[0] ? row[0].toLowerCase() : '';
+                    var rowType = row[1] ? row[1].toLowerCase() : '';
+                    var rowTeam = row[3] ? row[3].toLowerCase() : '';
+                    
+                    var show = (!team || rowTeam === team) && (!ageGroup || rowAgeGroup === ageGroup) && (!type || rowType === type);
+                    this.nodes().to$().toggle(show);
+                });
+            }
+            
+            $('#teamFilter, #ageGroupFilter, #typeFilter').on('change', filterTable);
+            
+            fetchData();
+        });
+    </script>
+</body>
+</html>
